@@ -76,6 +76,17 @@ __FBSDID("$FreeBSD$");
 
 #include "rk_vop_if.h"
 #include "dw_hdmi_if.h"
+#include "anx_edp_if.h"
+
+#define	__BIT(n)	(1 << (n))
+#define __BITS(hi,lo)	((~((~0)<<((hi)+1)))&((~0)<<(lo)))
+
+#define	RK3399_VOP_EDP_POL	__BITS(27,24)
+#define DSP_DCLK_POL			__BIT(3)
+#define	DSP_DEN_POL			__BIT(2)
+#define	DSP_VSYNC_POL			__BIT(1)
+#define	DSP_HSYNC_POL			__BIT(0)
+
 
 #define	VOP_READ(sc, reg)	bus_read_4((sc)->res[0], (reg))
 #define	VOP_WRITE(sc, reg, val)	bus_write_4((sc)->res[0], (reg), (val))
@@ -108,8 +119,8 @@ rk_vop_set_polarity(struct rk_vop_softc *sc, uint32_t pin_polarity)
 
 	/* HDMI */
 	reg = VOP_READ(sc, RK3399_DSP_CTRL1);
-	reg &= ~DSP_CTRL1_HDMI_POL_M;
-	reg |= pin_polarity << DSP_CTRL1_HDMI_POL_S;
+	reg &= ~RK3399_VOP_EDP_POL;
+	reg |= pin_polarity << RK3399_DSP_BG;
 	VOP_WRITE(sc, RK3399_DSP_CTRL1, reg);
 }
 
@@ -442,6 +453,7 @@ rk_crtc_atomic_flush(struct drm_crtc *crtc,
 }
 
 static void
+
 rk_crtc_atomic_enable(struct drm_crtc *crtc, struct drm_crtc_state *old_state)
 {
 	uint32_t hsync_len, vsync_len;
@@ -474,7 +486,7 @@ rk_crtc_atomic_enable(struct drm_crtc *crtc, struct drm_crtc_state *old_state)
 	/* Enable HDMI output only. */
 	reg = VOP_READ(sc, RK3399_SYS_CTRL);
 	reg &= ~SYS_CTRL_ALL_OUT_EN;
-	reg |= SYS_CTRL_HDMI_OUT_EN;
+	reg |= SYS_CTRL_EDP_OUT_EN;//changed from HDMI_OUT_EN
 	VOP_WRITE(sc, RK3399_SYS_CTRL, reg);
 
 	dprintf("SYS_CTRL %x\n", VOP_READ(sc, RK3399_SYS_CTRL));
@@ -567,6 +579,7 @@ static const struct drm_crtc_helper_funcs rk_vop_crtc_helper_funcs = {
 };
 
 static int
+
 rk_vop_add_encoder(struct rk_vop_softc *sc, struct drm_device *drm)
 {
 	phandle_t node;
@@ -577,12 +590,12 @@ rk_vop_add_encoder(struct rk_vop_softc *sc, struct drm_device *drm)
 	if (node == 0)
 		return (ENOENT);
 
-	dev = ofw_graph_get_device_by_port_ep(ofw_bus_get_node(sc->dev),
-	    0, 2 /* HDMI */);
-	if (dev == NULL)
-		return (ENOENT);
+	dev = ofw_graph_get_device_by_port_ep(node,0,1);
+	 if (dev == NULL)
+	      return (ENOENT);
 
-	ret = DW_HDMI_ADD_ENCODER(dev, &sc->crtc, drm);
+	ret = ANX_EDP_ADD_ENCODER(dev,&sc->crtc,drm);
+	//ret = DW_HDMI_ADD_ENCODER(dev, &sc->crtc, drm);
 	if (ret == 0)
 		return (ENODEV);
 
