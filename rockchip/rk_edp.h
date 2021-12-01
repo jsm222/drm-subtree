@@ -28,8 +28,6 @@
  * $FreeBSD$
  */
 
-
-
 #ifndef __RK_EDP_H__
 #define	__RK_EDP_H__
 #include <sys/param.h>
@@ -52,10 +50,14 @@
 #include <dev/drm/core/include/drm/drm_dp_helper.h>
 #include <dev/drm/bridges/anxdp/anx_dp.h>
 
-
-
-
-
+struct rk_edp_softc {
+	struct anxdp_softc  sc_base;
+	device_t dev;
+	struct syscon *grf;
+	clk_t pclk;
+	clk_t dpclk;
+	clk_t grfclk;
+};
 
 DECLARE_CLASS(rk_edp_driver);
 #endif /* __RK_EDP_H__ */

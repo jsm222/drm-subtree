@@ -34,7 +34,7 @@ __FBSDID("$FreeBSD$");
 #include "syscon_if.h"
 #include "dev/drm/bridges/anxdp/anx_dp.h"
 #include "dw_hdmi_if.h"
-#include "iicbus_if.h"
+//#include "iicbus_if.h"
 #define	 RK3399_GRF_SOC_CON20		0x6250
 #define  EDP_LCDC_SEL			BIT(5)
 
@@ -67,29 +67,6 @@ static void rk_anxdp_select_input(struct rk_edp_softc *sc, u_int crtc_index)
 
 }
 
-static bool
-rk_anxdp_encoder_mode_fixup(struct drm_encoder *encoder,
-    const struct drm_display_mode *mode, struct drm_display_mode *adjusted_mode)
-{
-	return true;
-}
-
-static void
-rk_anxdp_encoder_mode_set(struct drm_encoder *encoder,
-    struct drm_display_mode *mode, struct drm_display_mode *adjusted)
-{
-
-}
-
-static void
-rk_anxdp_encoder_enable(struct drm_encoder *encoder)
-{
-}
-
-static void
-rk_anxdp_encoder_disable(struct drm_encoder *encoder)
-{
-}
 
 static void
 rk_anxdp_encoder_prepare(struct drm_encoder *encoder)
@@ -105,16 +82,6 @@ rk_anxdp_encoder_prepare(struct drm_encoder *encoder)
 	rk_anxdp_select_input(sc, crtc_index);
 }
 
-static void
-rk_anxdp_encoder_commit(struct drm_encoder *encoder)
-{
-}
-
-static void
-rk_anxdp_encoder_dpms(struct drm_encoder *encoder, int mode)
-{
-}
-
 static const struct drm_encoder_funcs rk_anxdp_encoder_funcs = {
 	.destroy = drm_encoder_cleanup,
 };
@@ -126,208 +93,16 @@ static const struct drm_encoder_helper_funcs rk_anxdp_encoder_helper_funcs = {
 #define	to_rk_edp_softc(x)	container_of(x, struct rk_edp_softc, sc_base)
 #define	to_rk_edp_encoder(x)	container_of(x, struct rk_edp_softc, sc_encoder)
 
-int rk_do_small_transfer(device_t dev, struct iic_msg msg,int k) {
-	size_t j=0;
-	size_t loop_timeout = 0;
-	uint32_t val;
-	ssize_t ret = 0;
-	struct rk_edp_softc * csc;
-	struct anxdp_softc * sc;
-	csc = device_get_softc(dev);
-	sc = &csc->sc_base;
-	val = AUX_LENGTH(msg.len);
-	ANXDP_LOCK(sc);
-	if (msg.flags & I2C_M_RD)  {
-		val |= AUX_TX_COMM_READ | AUX_TX_COMM_I2C_TRANSACTION;
-	}
-	ANXDP_WRITE(sc, ANXDP_AUX_CH_CTL_1, val);
-	ANXDP_WRITE(sc, ANXDP_AUX_ADDR_7_0,
-	    AUX_ADDR_7_0(msg.slave>>1));
-	ANXDP_WRITE(sc, ANXDP_AUX_ADDR_15_8,
-	    AUX_ADDR_15_8(msg.slave>>1 ));
-	ANXDP_WRITE(sc, ANXDP_AUX_ADDR_19_16,
-	    AUX_ADDR_19_16(msg.slave>>1));
-	ANXDP_WRITE(sc, ANXDP_AUX_CH_CTL_2,
-	    AUX_EN | ((msg.len==0) ? ADDR_ONLY : 0));
-	loop_timeout = 0;
-	val = ANXDP_READ(sc,ANXDP_AUX_CH_CTL_2);
-	while ((val & AUX_EN) != 0) {
-		if (++loop_timeout > 20000) {
-			ret = -ETIMEDOUT;
-			goto out;
-		}
-		DELAY(25);
-		val = ANXDP_READ(sc,ANXDP_AUX_CH_CTL_2);
-	}
-
-	loop_timeout = 0;
-	val = ANXDP_READ(sc,ANXDP_DP_INT_STA);
-	while (!(val & RPLY_RECEIV)) {
-		if (++loop_timeout > 2000) {
-			ret = -ETIMEDOUT;
-			goto out;
-		}
-		DELAY(10);
-		val = ANXDP_READ(sc,
-		    ANXDP_DP_INT_STA);
-	}
-
-	ANXDP_WRITE(sc, ANXDP_DP_INT_STA,
-	    RPLY_RECEIV);
-	val = ANXDP_READ(sc,ANXDP_DP_INT_STA);
-	if ((val & AUX_ERR) != 0) {
-		ANXDP_WRITE(sc, ANXDP_DP_INT_STA,
-		    AUX_ERR);
-		ret = -EREMOTEIO;
-		goto out;
-	}
-	val = ANXDP_READ(sc,ANXDP_AUX_CH_STA);
-	if (AUX_STATUS(val) != 0) {
-		ret = -EREMOTEIO;
-		goto out;
-	}
-
-	if(msg.flags & I2C_M_RD) {
-		for (j = 0; j < 16;j++) {
-			msg.buf[j+k*16] = ANXDP_READ(sc,ANXDP_BUF_DATA(j));
-			ret++;
-		}
-		val = ANXDP_READ(sc,ANXDP_AUX_RX_COMM);
-	}
-out:
-	if (ret < 0) {
-		anxdp_init_aux(sc);
-		ANXDP_UNLOCK(sc);
-		return ret;
-	}
-	ANXDP_UNLOCK(sc);
-	return 0;
-}
-
-
-int rk_test_transfer(device_t dev, struct iic_msg *msgs, uint32_t nmsgs) {
-
-	struct rk_edp_softc * csc;
-	struct anxdp_softc * sc;
-
-	size_t k,i,j;
-	size_t loop_timeout = 0;
-	uint32_t val;
-	csc = device_get_softc(dev);
-	sc = &csc->sc_base;
-
-	ssize_t ret = 0;
-	for (i=0;i<nmsgs;i++) {
-		if(msgs[i].len > 16) {
-			for(k=0;k<msgs[i].len / 16;k++) {
-				ret = rk_do_small_transfer(dev,msgs[i],k);
-				if (ret!=0) {
-					goto out;
-				}
-			}
-
-		} else {
-			ANXDP_LOCK(sc);
-			val = AUX_LENGTH(msgs[i].len);
-			if (msgs[i].flags & I2C_M_RD)  {
-				val |= AUX_TX_COMM_READ | AUX_TX_COMM_I2C_TRANSACTION;
-			}
-
-			ANXDP_WRITE(sc, ANXDP_AUX_CH_CTL_1, val);
-			ANXDP_WRITE(sc, ANXDP_AUX_ADDR_7_0,
-			    AUX_ADDR_7_0(msgs[i].slave>>1));
-			ANXDP_WRITE(sc, ANXDP_AUX_ADDR_15_8,
-			    AUX_ADDR_15_8(msgs[i].slave>>1 ));
-			ANXDP_WRITE(sc, ANXDP_AUX_ADDR_19_16,
-			    AUX_ADDR_19_16(msgs[i].slave>>1));
-
-			if (!(msgs[i].flags & I2C_M_RD)) {
-				for (j = 0; j < msgs[i].len; j++) {
-
-					ANXDP_WRITE(sc,
-					    ANXDP_BUF_DATA(j),
-					    msgs[i].buf[j]);
-					ret++;
-				}
-			}
-
-
-			ANXDP_WRITE(sc, ANXDP_AUX_CH_CTL_2,
-			    AUX_EN | ((msgs[i].len==0) ? ADDR_ONLY : 0));
-			loop_timeout = 0;
-			val = ANXDP_READ(sc,ANXDP_AUX_CH_CTL_2);
-			while ((val & AUX_EN) != 0) {
-				if (++loop_timeout > 20000) {
-					ret = -ETIMEDOUT;
-					goto out;
-				}
-				DELAY(25);
-				val = ANXDP_READ(sc,
-				    ANXDP_AUX_CH_CTL_2);
-			}
-
-			loop_timeout = 0;
-			val = ANXDP_READ(sc,ANXDP_DP_INT_STA);
-			while (!(val & RPLY_RECEIV)) {
-				if (++loop_timeout > 2000) {
-					ret = -ETIMEDOUT;
-					goto out;
-				}
-				DELAY(10);
-				val = ANXDP_READ(sc,ANXDP_DP_INT_STA);
-			}
-
-			ANXDP_WRITE(sc, ANXDP_DP_INT_STA,
-			    RPLY_RECEIV);
-
-			val = ANXDP_READ(sc,ANXDP_DP_INT_STA);
-			if ((val & AUX_ERR) != 0) {
-
-				ANXDP_WRITE(sc, ANXDP_DP_INT_STA,
-				    AUX_ERR);
-				ret = -EREMOTEIO;
-				goto out;
-			}
-
-			val = ANXDP_READ(sc,ANXDP_AUX_CH_STA);
-			if (AUX_STATUS(val) != 0) {
-
-				ret = -EREMOTEIO;
-				goto out;
-			}
-			if (msgs[i].flags & I2C_M_RD) {
-				for (j = 0; j < msgs[i].len;j++) {
-					uint32_t b = ANXDP_READ(sc,0x7c0+4*j);
-					msgs[i].buf[j] = b;
-					ret++;
-				}
-			}
-
-			val = ANXDP_READ(sc,ANXDP_AUX_RX_COMM);
-			ANXDP_UNLOCK(sc);
-		}
-
-	}
-out:
-	if (ret < 0) {
-		anxdp_init_aux(sc);
-		ANXDP_UNLOCK(sc);
-		return ret;
-	}
-	return (0);
-}
-
-static device_method_t rk_edp_methods[] = {
-	/* Device interface */
+static device_method_t
+rk_edp_methods[] = {
 	DEVMETHOD(device_probe,		rk_edp_probe),
 	DEVMETHOD(device_attach,	rk_edp_attach),
 	DEVMETHOD(dw_hdmi_add_encoder,  rk_edp_add_encoder),
-	DEVMETHOD(iicbus_transfer,	rk_test_transfer),
 	DEVMETHOD_END
 };
+
 static int
-rk_edp_probe(device_t dev)
-{
+rk_edp_probe(device_t dev){
 
 	if (!ofw_bus_status_okay(dev))
 		return (ENXIO);
@@ -338,10 +113,9 @@ rk_edp_probe(device_t dev)
 	device_set_desc(dev, "RockChip edp");
 	return (BUS_PROBE_DEFAULT);
 }
-static int rk_edp_attach(device_t dev)
+static int
+rk_edp_attach(device_t dev)
 {
-
-
 	struct rk_edp_softc *sc;
 	phandle_t node;
 	int error;
@@ -354,52 +128,47 @@ static int rk_edp_attach(device_t dev)
 		device_printf(dev, "could not allocate resources\n");
 		return (ENXIO);
 	}
-	/*sc->sc_base.sc_bst = rman_get_bustag(sc->res[0]);
-	sc->sc_base.sc_bsh = rman_get_bushandle(sc->res[0]);
-	*/
 
 	sc->sc_base.sc_flags |= ANXDP_FLAG_ROCKCHIP;
 
 
 	error = clk_get_by_ofw_name(dev, 0, "pclk", &sc->pclk);
 	if (error!=0) {
-		printf("could not get pclk error:%d\n",error);
+		device_printf(dev,"could not get pclk error:%d\n",error);
 		return -1;
 	}
 	error = clk_enable(sc->pclk);
 	if (error!=0) {
-		printf("could not enable pclk error:%d\n",error);
+		device_printf(dev,"could not enable pclk error:%d\n",error);
 		return -1;
 	}
 	error = clk_get_by_ofw_name(dev, 0, "dp", &sc->dpclk);
 	if (error!=0) {
-		printf("could not get dp clock error:%d\n",error);
+		device_printf(dev,"could not get dp clock error:%d\n",error);
 		return -1;
 	}
 	error = clk_enable(sc->dpclk);
 	if (error!=0) {
-		printf("could not enable dp error:%d\n",error);
+		device_printf(dev,"could not enable dp error:%d\n",error);
 		return -1;
 	}
 	error = clk_get_by_ofw_name(dev, 0, "grf", &sc->grfclk);
 	if (error!=0) {
-		printf("could not get grf clock error:%d\n",error);
+		device_printf(dev,"could not get grf clock error:%d\n",error);
 		return -1;
 	}
 	error = clk_enable(sc->grfclk);
 	if (error!=0) {
-		printf("could not enabel grp clok error:%d\n",error);
+		device_printf(dev,"could not enable grp clok error:%d\n",error);
 		return -1;
 	}
 	error = syscon_get_by_ofw_property(dev, node, "rockchip,grf", &sc->grf);
 	if (error != 0) {
-		printf("cannot get grf syscon: %d\n", error);
+		device_printf(dev,"cannot get grf syscon: %d\n", error);
 		return (ENXIO);
 	}
 
 	sc->dev=dev;
-
-
 
 	sc->sc_base.sc_dev=dev;
 	anxdp_attach(&sc->sc_base);
@@ -407,10 +176,8 @@ static int rk_edp_attach(device_t dev)
 
 }
 
-
-
-
-static int rk_edp_add_encoder(device_t dev, struct drm_crtc *crtc, struct drm_device *drm)
+static int
+rk_edp_add_encoder(device_t dev, struct drm_crtc *crtc, struct drm_device *drm)
 {
 	struct rk_edp_softc *sc;
 	sc = device_get_softc(dev);
@@ -418,17 +185,10 @@ static int rk_edp_add_encoder(device_t dev, struct drm_crtc *crtc, struct drm_de
 	sc->sc_base.sc_encoder.possible_crtcs = drm_crtc_mask(crtc);
 	drm_encoder_init(drm, &sc->sc_base.sc_encoder, &rk_anxdp_encoder_funcs,
 	    DRM_MODE_ENCODER_TMDS, NULL);
-
-
 	rk_anxdp_select_input(sc,crtc->index);
 	anxdp_add_bridge(&sc->sc_base,&sc->sc_base.sc_encoder);
 	return (0);
 }
-
-
-
-
-
 
 
 static devclass_t rk_edp_devclass;

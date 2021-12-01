@@ -43,9 +43,9 @@
 #include <drm/drm_bridge.h>
 #include <drm/drm_panel.h>
 #include <drm/drm_connector.h>
+#include <drm/drm_atomic_helper.h>
 #include <drm/drm_edid.h>
 #include <linux/bitops.h>
-#include "dev/drm/rockchip/rk_edp.h"
 #define __BITS(hi,lo)	((~((~0)<<((hi)+1)))&((~0)<<(lo)))
 #define __BIT BIT
 #define __LOWEST_SET_BIT(__mask) ((((__mask) - 1) & (__mask)) ^ (__mask))
@@ -205,43 +205,31 @@
 
 
 
-struct rk_edp_softc;
 
 struct anxdp_softc {
-  struct mtx mtx;
-  device_t		iicbus;
-  struct device*	sc_dev;
+	struct mtx mtx;
+	device_t	iicbus;
+	struct device*	sc_dev;
 
-  struct resource *res[2];
-  u_int			sc_flags;
+	struct resource *res[2];
+	u_int		sc_flags;
 #define	ANXDP_FLAG_ROCKCHIP	__BIT(0)
-struct drm_connector 	sc_connector;
-  struct drm_encoder    sc_encoder;
-struct drm_dp_aux       sc_dpaux;
-struct drm_panel *	sc_panel;
-uint8_t			sc_dpcd[DP_RECEIVER_CAP_SIZE];
-  struct drm_bridge	sc_bridge;
-  struct drm_display_mode	sc_curmode;
+	struct drm_connector 	sc_connector;
+	struct drm_encoder      sc_encoder;
+	struct drm_dp_aux       sc_dpaux;
+	struct drm_panel *	sc_panel;
+	uint8_t			sc_dpcd[DP_RECEIVER_CAP_SIZE];
+	struct drm_bridge	sc_bridge;
+	struct drm_display_mode	sc_curmode;
 };
-struct rk_edp_softc {
-  struct anxdp_softc  sc_base;
-  device_t dev;
-  struct syscon *grf;
-  clk_t pclk;
-  clk_t dpclk;
-  clk_t grfclk;
 
-
-};
-#define	ANXDP_LOCK(sc)		mtx_lock(&(sc)->mtx)
-#define	ANXDP_UNLOCK(sc)	mtx_unlock(&(sc)->mtx)
+#define	ANXDP_LOCK(sc)	mtx_lock(&(sc)->mtx)
+#define	ANXDP_UNLOCK(sc) mtx_unlock(&(sc)->mtx)
 #define	ANXDP_WRITE(sc, reg, val) bus_write_4((sc)->res[0], (reg), (val))
 #define	ANXDP_READ(sc, reg) bus_read_4((sc)->res[0], (reg))
 
 #define	to_edp_connector(x)	container_of(x, struct anxdp_connector, base)
 int anxdp_attach(struct anxdp_softc *sc);
-int anxdp_bind(struct anxdp_softc *sc,struct drm_encoder *encoder);
-void anxdp_init_aux(struct anxdp_softc * sc);
 void anxdp_add_bridge(struct anxdp_softc *sc,struct drm_encoder *encoder);
 
 DECLARE_CLASS(anxdp_driver);

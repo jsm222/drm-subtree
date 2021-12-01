@@ -76,18 +76,17 @@ struct i2c_algorithm {
 
 
 struct i2c_adapter {
-	char
-	name[I2C_NAME_SIZE];
+	char 	name[I2C_NAME_SIZE];
 	const struct i2c_algorithm	*algo;
 	void				*algo_data;
 	int				retries;
 	struct module			*owner;
 	unsigned int			class; /* I2C_CLASS_* */
+	device_t bsddev;
 	struct {
 		device_t	parent;
-	}				dev;
-	void				*i2ca_adapdata;
-  device_t bsddev;
+	}	dev;
+	void		*i2ca_adapdata;
 
 };
 
@@ -107,26 +106,30 @@ i2c_bsd_adapter(device_t dev)
 static inline int 
 i2c_transfer (struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
 {
-  struct
-    iic_msg *bsd_msgs;
-	int i, ret;
+  
+  if(adap && adap->algo
+     && !adap->bsddev) 
+	return (*adap->algo->master_xfer)(adap, msgs, num);
+    struct iic_msg *bsd_msgs;  
+    int i, ret;
 	
 	bsd_msgs = malloc(sizeof(struct iic_msg) * num, M_TEMP, M_WAITOK);
 	memcpy(bsd_msgs, msgs, sizeof(struct iic_msg) * num);
-	/* Linux uses 7-bit addresses but FreeBSD 8-bit */
-	for (i = 0; i < num; i++) {
+	/*inux uses 7-bit addresses but FreeBSD 8-bit */
+	  	for (i = 0; i < num; i++) {
 		bsd_msgs[i].slave = msgs[i].addr << 1;
 		bsd_msgs[i].flags = msgs[i].flags;
 		bsd_msgs[i].len = msgs[i].len;
 		bsd_msgs[i].buf = msgs[i].buf;
 	}
-	 
+	
 	ret = iicbus_transfer(adap->bsddev, bsd_msgs, num);
 	free(bsd_msgs, M_TEMP);
 	if (ret != 0)
 		return (-ret);
 
 	return (num);
+ 
 }
 /*
  * Adapter management.  We don't register these in a global database
