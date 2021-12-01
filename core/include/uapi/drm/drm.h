@@ -53,6 +53,7 @@ typedef unsigned int drm_handle_t;
 #include <stdint.h>
 #include <sys/ioccom.h>
 #include <sys/types.h>
+#ifndef _ASM_TYPES_H_
 typedef int8_t   __s8;
 typedef uint8_t  __u8;
 typedef int16_t  __s16;
@@ -62,8 +63,8 @@ typedef uint32_t __u32;
 typedef int64_t  __s64;
 typedef uint64_t __u64;
 typedef size_t   __kernel_size_t;
+#endif
 typedef unsigned long drm_handle_t;
-
 #endif
 
 #if defined(__cplusplus)

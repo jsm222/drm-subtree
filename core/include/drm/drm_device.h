@@ -330,7 +330,7 @@ struct drm_device {
 
 	/* Everything below here is for legacy driver, never use! */
 	/* private: */
-#if IS_ENABLED(CONFIG_DRM_LEGACY)
+#if 0 /*IS_ENABLED(CONFIG_DRM_LEGACY)*/
 	/* Context handle management - linked list of context handles */
 	struct list_head ctxlist;
 
