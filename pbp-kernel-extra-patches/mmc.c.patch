@@ -1,0 +1,67 @@
+diff --git a/sys/dev/mmc/mmc.c b/sys/dev/mmc/mmc.c
+index 9c73dfd57ce..8616534a9df 100644
+--- a/sys/dev/mmc/mmc.c
++++ b/sys/dev/mmc/mmc.c
+@@ -59,6 +59,7 @@ __FBSDID("$FreeBSD$");
+ #include <sys/param.h>
+ #include <sys/systm.h>
+ #include <sys/kernel.h>
++#include <sys/kobj.h>
+ #include <sys/malloc.h>
+ #include <sys/lock.h>
+ #include <sys/module.h>
+@@ -1512,6 +1513,9 @@ mmc_timing_to_string(enum mmc_bus_timing timing)
+ static bool
+ mmc_host_timing(device_t dev, enum mmc_bus_timing timing)
+ {
++	kobjop_desc_t kobj_desc;
++        kobj_method_t *kobj_method;
++
+ 	int host_caps;
+ 
+ 	host_caps = mmcbr_get_caps(dev);
+@@ -1543,14 +1547,38 @@ mmc_host_timing(device_t dev, enum mmc_bus_timing timing)
+ 	case bus_timing_mmc_ddr52:
+ 		return (HOST_TIMING_CAP(host_caps, MMC_CAP_MMC_DDR52));
+ 	case bus_timing_mmc_hs200:
+-		return (HOST_TIMING_CAP(host_caps, MMC_CAP_MMC_HS200_120) ||
+-			HOST_TIMING_CAP(host_caps, MMC_CAP_MMC_HS200_180));
+ 	case bus_timing_mmc_hs400:
+-		return (HOST_TIMING_CAP(host_caps, MMC_CAP_MMC_HS400_120) ||
+-			HOST_TIMING_CAP(host_caps, MMC_CAP_MMC_HS400_180));
+ 	case bus_timing_mmc_hs400es:
+-		return (HOST_TIMING_CAP(host_caps, MMC_CAP_MMC_HS400 |
+-		    MMC_CAP_MMC_ENH_STROBE));
++
++               /*
++                * Disable eMMC modes that require use of
++                * MMC_SEND_TUNING_BLOCK_HS200 to set things up if either the
++                * tune or re-tune method is the default NULL implementation.
++                */
++               kobj_desc = &mmcbr_tune_desc;
++               kobj_method = kobj_lookup_method(((kobj_t)dev)->ops->cls, NULL,
++                   kobj_desc);
++               if (kobj_method == &kobj_desc->deflt)
++                       return (false);
++               kobj_desc = &mmcbr_retune_desc;
++               kobj_method = kobj_lookup_method(((kobj_t)dev)->ops->cls, NULL,
++                   kobj_desc);
++               if (kobj_method == &kobj_desc->deflt) {
++                       return (false);
++               }
++
++               /*
++                * Otherwise track the host capabilities.
++                */
++               if (timing == bus_timing_mmc_hs200)
++                       return (HOST_TIMING_CAP(host_caps, MMC_CAP_MMC_HS200_120) ||
++                               HOST_TIMING_CAP(host_caps, MMC_CAP_MMC_HS200_180));
++               if (timing == bus_timing_mmc_hs400)
++                       return (HOST_TIMING_CAP(host_caps, MMC_CAP_MMC_HS400_120) ||
++                               HOST_TIMING_CAP(host_caps, MMC_CAP_MMC_HS400_180));
++               if (timing == bus_timing_mmc_hs400es)
++                       return (HOST_TIMING_CAP(host_caps, MMC_CAP_MMC_HS400 |
++                               MMC_CAP_MMC_ENH_STROBE));
+ 	}
+ 
+ #undef HOST_TIMING_CAP

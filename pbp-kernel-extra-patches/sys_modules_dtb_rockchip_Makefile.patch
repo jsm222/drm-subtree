@@ -1,0 +1,14 @@
+diff --git a/sys/modules/dtb/rockchip/Makefile b/sys/modules/dtb/rockchip/Makefile
+index 3daf38fb823..39c1c1598aa 100644
+--- a/sys/modules/dtb/rockchip/Makefile
++++ b/sys/modules/dtb/rockchip/Makefile
+@@ -17,7 +17,8 @@ DTS=	\
+ 	rockchip/rk3328-rock-pi-e.dts \
+ 	rockchip/rk3328-rock64.dts \
+ 	rockchip/rk3399-firefly.dts \
+-	rockchip/rk3399-rockpro64.dts
++	rockchip/rk3399-rockpro64.dts \
++	rockchip/rk3399-pinebook-pro.dts
+ 
+ DTSO=	rk3328-analog-sound.dtso \
+ 	rk3328-dwc3.dtso \
