@@ -35,7 +35,6 @@ __FBSDID("$FreeBSD$");
 
 #include <sys/param.h>
 #include <sys/systm.h>
-#include <stack.h>
 #include <sys/bus.h>
 #include <sys/fbio.h>
 #include <sys/kernel.h>
@@ -111,14 +110,13 @@ panfrost_job_intr(void *arg)
 	int i;
 	struct panfrost_job *job;
 	enum panfrost_queue_status old_status;
-	
+
 	sc = arg;
 
 	stat = GPU_READ(sc, JOB_INT_STAT);
 	dprintf("%s: stat %x\n", __func__, stat);
-       
+
 	for (i = 0; stat; i++) {
-	  
 		mask = (1 << i) | (1 << (16 + i));
 		if ((stat & mask) == 0)
 			continue;
@@ -129,7 +127,7 @@ panfrost_job_intr(void *arg)
 			GPU_WRITE(sc, JS_COMMAND_NEXT(i), JS_COMMAND_NOP);
 
 			status = GPU_READ(sc, JS_STATUS(i));
-			dprintf(
+			device_printf(sc->dev,
 			    "%s: job fault, slot %d status %x "
 			    "head %x tail %x\n", __func__, i, status,
 			    GPU_READ(sc, JS_HEAD_LO(i)),
@@ -543,15 +541,14 @@ panfrost_job_timedout(struct drm_sched_job *sched_job)
 		return;
 	}
 
-	printf("%s: 1\n", __func__);
-	stack_print(stack_create(11));
+printf("%s: 1\n", __func__);
 	if (!panfrost_scheduler_stop(&sc->js->queue[job->slot], sched_job)) {
 		device_printf(sc->dev, "%s: could not stop scheduler\n",			    __func__);
 		return;
 	}
 
 	if (!atomic_swap_int(&sc->reset_pending, 1))
-	  taskqueue_enqueue(taskqueue_thread, &sc->reset_work);
+		taskqueue_enqueue(taskqueue_thread, &sc->reset_work);
 }
 
 static void
@@ -675,7 +672,7 @@ panfrost_reset(void *arg, int pending)
 		    __func__);
 
 	for (i = 0; i < NUM_JOB_SLOTS; i++) {
-		device_printf(sc->dev, "%s: restartin scheduler %d\n",
+		device_printf(sc->dev, "%s: restarting scheduler %d\n",
 		    __func__, i);
 		panfrost_scheduler_start(&sc->js->queue[i]);
 	}

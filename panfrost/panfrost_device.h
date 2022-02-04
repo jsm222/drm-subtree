@@ -33,7 +33,7 @@
 #ifndef	_DEV_DRM_PANFROST_PANFROST_DEVICE_H_
 #define	_DEV_DRM_PANFROST_PANFROST_DEVICE_H_
 
-#define	NUM_JOB_SLOTS 3
+#define	NUM_JOB_SLOTS	3
 
 struct panfrost_mmu {
 	struct pmap p;
@@ -54,8 +54,5 @@ int panfrost_device_init(struct panfrost_softc *);
 int panfrost_device_reset(struct panfrost_softc *sc);
 uint32_t panfrost_device_get_latest_flush_id(struct panfrost_softc *sc);
 int panfrost_device_power_on(struct panfrost_softc *sc);
-int panfrost_device_soft_reset(struct panfrost_softc *sc);
-void panfrost_device_init_features(struct panfrost_softc *sc);
-void panfrost_device_init_quirks(struct panfrost_softc *sc);
 
 #endif /* !_DEV_DRM_PANFROST_PANFROST_DEVICE_H_ */

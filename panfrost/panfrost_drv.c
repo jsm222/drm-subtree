@@ -298,7 +298,7 @@ panfrost_ioctl_submit(struct drm_device *dev, void *data,
 	args = data;
 	sync_out = NULL;
 
-	dprintf("%s: jc %lx\n", __func__, args->jc);
+	dprintf("%s: jc %x\n", __func__, args->jc);
 
 	if (args->jc == 0)
 		return (EINVAL);
@@ -358,6 +358,7 @@ panfrost_ioctl_wait_bo(struct drm_device *dev, void *data,
 	args = data;
 	if (args->pad)
 		return (EINVAL);
+
 	timeout = drm_timeout_abs_to_jiffies(args->timeout_ns);
 
 	gem_obj = drm_gem_object_lookup(file_priv, args->handle);
@@ -376,11 +377,11 @@ panfrost_ioctl_wait_bo(struct drm_device *dev, void *data,
 		error = timeout ? ETIMEDOUT : EBUSY;
 	else if (error > 0)
 		error = 0;
-	
+
 	mutex_lock(&dev->struct_mutex);
 	drm_gem_object_put(gem_obj);
 	mutex_unlock(&dev->struct_mutex);
-	
+
 	return (error);
 }
 
@@ -543,6 +544,9 @@ panfrost_ioctl_get_param(struct drm_device *ddev, void *data,
 		param->value = sc->features.js_features[param->param -
 		    DRM_PANFROST_PARAM_JS_FEATURES0];
 		break;
+	case DRM_PANFROST_PARAM_AFBC_FEATURES:
+		param->value = sc->features.afbc_features;
+		break;
 	default:
 		return (EINVAL);
 	}
@@ -659,7 +663,7 @@ static struct drm_driver panfrost_drm_driver = {
 	.desc			= "panfrost DRM",
 	.date			= "20201124",
 	.major			= 1,
-	.minor			= 1,
+	.minor			= 2,
 };
 
 static void

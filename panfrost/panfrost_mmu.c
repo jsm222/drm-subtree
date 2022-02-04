@@ -140,7 +140,7 @@ access_type_name(struct panfrost_softc *sc, uint32_t fault_status)
 	}
 }
 
-static struct panfrost_gem_mapping *
+struct panfrost_gem_mapping *
 panfrost_mmu_find_mapping(struct panfrost_softc *sc, int as, uint64_t addr)
 {
 	struct panfrost_gem_mapping *mapping;
@@ -311,7 +311,7 @@ panfrost_mmu_page_fault(struct panfrost_softc *sc, int as, uint64_t addr)
 
 	va = bomapping->mmnode.start << PAGE_SHIFT;
 
-	device_printf(sc->dev, "addr %jx va %jx page_offset %lx, npages %d\n",
+	device_printf(sc->dev, "addr %jx va %jx page_offset %d, npages %d\n",
 	    addr, va, page_offset, bo->npages);
 
 	mmu = bomapping->mmu;
@@ -575,8 +575,8 @@ panfrost_mmu_map(struct panfrost_softc *sc,
 	if (bo->noexec == 0)
 		prot |= VM_PROT_EXECUTE;
 
-	dprintf("%s: bo %p mmu %p as %d  %lx  %d pages\n",
-	    __func__, bo, mmu, mmu->as, sva,  bo->npages);
+	dprintf("%s: bo %p mmu %p as %d sva %lx, %d pages\n",
+	    __func__, bo, mmu, mmu->as, sva, bo->npages);
 
 	sgt = bo->sgt;
 
