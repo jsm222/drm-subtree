@@ -69,5 +69,17 @@ struct drm_gem_object *
     struct dma_buf_attachment *attach, struct sg_table *sgt);
 void panfrost_gem_teardown_mappings_locked(struct panfrost_gem_object *bo);
 int panfrost_gem_mappings_count(struct panfrost_gem_object *bo);
+int panfrost_gem_open(struct drm_gem_object *obj, struct drm_file *file_priv);
+void panfrost_gem_close(struct drm_gem_object *obj, struct drm_file *file_priv);
+void panfrost_gem_print_info(struct drm_printer *p, unsigned int indent,
+    const struct drm_gem_object *obj);
+void panfrost_gem_unpin(struct drm_gem_object *obj);
+struct sg_table * panfrost_gem_get_sg_table(struct drm_gem_object *obj);
+void * panfrost_gem_vmap(struct drm_gem_object *obj);
+void panfrost_gem_vunmap(struct drm_gem_object *obj, void *vaddr);
+int panfrost_gem_mmap(struct drm_gem_object *obj, struct vm_area_struct *vma);
+
+
+
 
 #endif /* !_DEV_DRM_PANFROST_PANFROST_GEM_H_ */

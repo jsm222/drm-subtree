@@ -46,5 +46,7 @@ void panfrost_mmu_pgtable_free(struct panfrost_file *pfile);
 void panfrost_mmu_unmap(struct panfrost_softc *sc,
     struct panfrost_gem_mapping *mapping);
 void panfrost_mmu_reset(struct panfrost_softc *sc);
+struct panfrost_gem_mapping * panfrost_mmu_find_mapping(struct panfrost_softc *sc,
+int as, uint64_t addr);
 
 #endif /* !_DEV_DRM_PANFROST_PANFROST_MMU_H_ */

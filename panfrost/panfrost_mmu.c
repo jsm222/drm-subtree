@@ -311,7 +311,7 @@ panfrost_mmu_page_fault(struct panfrost_softc *sc, int as, uint64_t addr)
 
 	va = bomapping->mmnode.start << PAGE_SHIFT;
 
-	device_printf(sc->dev, "addr %jx va %jx page_offset %d, npages %d\n",
+	device_printf(sc->dev, "addr %jx va %jx page_offset %lu, npages %d\n",
 	    addr, va, page_offset, bo->npages);
 
 	mmu = bomapping->mmu;

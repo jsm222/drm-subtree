@@ -147,7 +147,7 @@ panfrost_gem_open(struct drm_gem_object *obj, struct drm_file *file_priv)
 	mtx_unlock_spin(&pfile->mm_lock);
 	if (error) {
 		device_printf(sc->dev,
-		    "%s: Failed to insert: sz %d, align %d, color %d, err %d\n",
+		    "%s: Failed to insert: sz %lu, align %d, color %d, err %d\n",
 		    __func__, obj->size >> PAGE_SHIFT, align, color, error);
 		goto error;
 	}
@@ -304,7 +304,7 @@ panfrost_gem_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
 
 	if (pidx >= i) {
 		device_printf(sc->dev, "%s: error: requested page is "
-		    "out of range (%d/%d)\n", __func__, pidx, i);
+		    "out of range (%lu/%d)\n", __func__, pidx, i);
 		return (VM_FAULT_SIGBUS);
 	}
 
