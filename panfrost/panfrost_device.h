@@ -57,4 +57,8 @@ int panfrost_device_power_on(struct panfrost_softc *sc);
 int panfrost_device_soft_reset(struct panfrost_softc *sc);
 void panfrost_device_init_features(struct panfrost_softc *sc);
 void panfrost_device_init_quirks(struct panfrost_softc *sc);
+
+
+
+
 #endif /* !_DEV_DRM_PANFROST_PANFROST_DEVICE_H_ */
