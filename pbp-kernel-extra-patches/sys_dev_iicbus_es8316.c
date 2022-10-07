@@ -1,9 +1,9 @@
 diff --git a/sys/dev/iicbus/es8316.c b/sys/dev/iicbus/es8316.c
 new file mode 100644
-index 000000000000..18d51c83b605
+index 00000000000..1eae1e1bb10
 --- /dev/null
 +++ b/sys/dev/iicbus/es8316.c
-@@ -0,0 +1,628 @@
+@@ -0,0 +1,627 @@
 +/*-
 + * Copyright (c) 2019 Oleksandr Tymoshenko <gonzo@FreeBSD.org>
 + *
@@ -553,8 +553,8 @@ index 000000000000..18d51c83b605
 +static int
 +es8316_dai_trigger(device_t dev, int go, int pcm_dir)
 +{
-+	struct es8316_softc *sc;
-+	sc = device_get_softc(dev);
++	//struct es8316_softc *sc;
++	//sc = device_get_softc(dev);
 +
 +	if ((pcm_dir != PCMDIR_PLAY) && (pcm_dir != PCMDIR_REC))
 +		return (EINVAL);
@@ -626,9 +626,8 @@ index 000000000000..18d51c83b605
 +	es8316_methods,
 +	sizeof(struct es8316_softc),
 +};
-+static devclass_t es8316_devclass;
 +
-+DRIVER_MODULE(es8316codec, iicbus, es8316_driver, es8316_devclass, NULL, NULL);
++DRIVER_MODULE(es8316codec, iicbus, es8316_driver, NULL, NULL);
 +MODULE_VERSION(es8316codec, 1);
 +MODULE_DEPEND(es8316codec, iicbus, IICBUS_MINVER, IICBUS_PREFVER, IICBUS_MAXVER);
 +IICBUS_FDT_PNP_INFO(compat_data);
