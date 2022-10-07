@@ -365,7 +365,7 @@ panfrost_ioctl_wait_bo(struct drm_device *dev, void *data,
 	if (!gem_obj)
 		return (ENOENT);
 
-	error = reservation_object_wait_timeout_rcu(gem_obj->resv, true,
+	error = dma_resv_wait_timeout_rcu(gem_obj->resv, true,
 	    true, timeout);
 	/*
 	 * error == 0 means not signaled,
@@ -429,7 +429,6 @@ panfrost_ioctl_mmap_bo(struct drm_device *dev, void *data,
     struct drm_file *file)
 {
 	struct drm_panfrost_mmap_bo *args;
-	struct panfrost_gem_object *bo;
 	struct drm_gem_object *obj;
 	int error;
 
@@ -441,8 +440,6 @@ panfrost_ioctl_mmap_bo(struct drm_device *dev, void *data,
 	obj = drm_gem_object_lookup(file, args->handle);
 	if (obj == NULL)
 		return (EINVAL);
-
-	bo = (struct panfrost_gem_object *)obj;
 
 	error = drm_gem_create_mmap_offset(obj);
 	if (error == 0)
@@ -592,7 +589,6 @@ static int
 panfrost_ioctl_madvise(struct drm_device *dev, void *data,
     struct drm_file *file_priv)
 {
-	struct panfrost_file_priv *pfile;
 	struct drm_panfrost_madvise *args;
 	struct drm_gem_object *obj;
 	struct panfrost_gem_object *bo;
@@ -602,7 +598,6 @@ panfrost_ioctl_madvise(struct drm_device *dev, void *data,
 
 	dprintf("%s\n", __func__);
 
-	pfile = file_priv->driver_priv;
 	args = data;
 
 	obj = drm_gem_object_lookup(file_priv, args->handle);
@@ -646,8 +641,7 @@ static const struct drm_ioctl_desc panfrost_drm_driver_ioctls[] = {
 };
 
 static struct drm_driver panfrost_drm_driver = {
-	.driver_features = DRIVER_RENDER | DRIVER_GEM | DRIVER_SYNCOBJ |
-	    DRIVER_PRIME,
+	.driver_features = DRIVER_RENDER | DRIVER_GEM | DRIVER_SYNCOBJ,
 
 	.open			= panfrost_open,
 	.postclose		= panfrost_postclose,
@@ -733,7 +727,6 @@ static int
 panfrost_attach(device_t dev)
 {
 	struct panfrost_softc *sc;
-	phandle_t node;
 	uint64_t rate;
 	int err;
 
@@ -743,8 +736,6 @@ panfrost_attach(device_t dev)
 	TAILQ_INIT(&sc->mmu_in_use);
 	mtx_init(&sc->mmu_lock, "mmu list", NULL, MTX_DEF);
 	mtx_init(&sc->sched_lock, "sched", NULL, MTX_DEF);
-
-	node = ofw_bus_get_node(sc->dev);
 
 	if (bus_alloc_resources(dev, mali_spec, sc->res) != 0) {
 		device_printf(dev, "cannot allocate resources for device\n");

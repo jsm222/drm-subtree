@@ -987,6 +987,14 @@ struct fb_info *drm_fb_helper_alloc_fbi(struct drm_fb_helper *fb_helper)
 	if (ret)
 		goto err_release;
 
+	/*
+	 * TODO: We really should be smarter here and alloc an apperture
+	 * for each IORESOURCE_MEM resource helper->dev->dev has and also
+	 * init the ranges of the appertures based on the resources.
+	 * Note some drivers currently count on there being only 1 empty
+	 * aperture and fill this themselves, these will need to be dealt
+	 * with somehow when fixing this.
+	 */
 	info->apertures = alloc_apertures(1);
 	if (!info->apertures) {
 		ret = -ENOMEM;
@@ -2908,8 +2916,9 @@ static void drm_setup_crtcs_fb(struct drm_fb_helper *fb_helper)
 {
 #ifdef __linux__
 	struct fb_info *info = fb_helper->fbdev;
-#endif
 	unsigned int rotation, sw_rotations = 0;
+#endif
+	unsigned int rotation;
 	int i;
 
 	for (i = 0; i < fb_helper->crtc_count; i++) {
@@ -2920,11 +2929,15 @@ static void drm_setup_crtcs_fb(struct drm_fb_helper *fb_helper)
 
 		modeset->fb = fb_helper->fb;
 
+#ifdef __linux__
 		if (drm_fb_helper_panel_rotation(modeset, &rotation))
 			/* Rotating in hardware, fbcon should not rotate */
 			sw_rotations |= DRM_MODE_ROTATE_0;
 		else
 			sw_rotations |= rotation;
+#elif defined(__FreeBSD__)
+		drm_fb_helper_panel_rotation(modeset, &rotation);
+#endif
 	}
 
 #ifdef __linux__

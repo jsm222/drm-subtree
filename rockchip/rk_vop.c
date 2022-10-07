@@ -290,8 +290,8 @@ rk_vop_attach(device_t dev)
 	}
 
 	if (bus_setup_intr(dev, sc->res[1],
-		INTR_TYPE_MISC | INTR_MPSAFE, NULL, rk_vop_intr, sc,
-		&sc->intrhand)) {
+	    INTR_TYPE_MISC | INTR_MPSAFE, NULL, rk_vop_intr, sc,
+	    &sc->intrhand)) {
 		bus_release_resources(dev, rk_vop_spec, sc->res);
 		device_printf(dev, "cannot setup interrupt handler\n");
 		return (ENXIO);
@@ -397,12 +397,9 @@ rk_crtc_atomic_check(struct drm_crtc *crtc, struct drm_crtc_state *state)
 static void
 rk_crtc_atomic_begin(struct drm_crtc *crtc, struct drm_crtc_state *old_state)
 {
-	struct rk_vop_softc *sc;
 	unsigned long flags;
 
 	dprintf("%s\n", __func__);
-
-	sc = container_of(crtc, struct rk_vop_softc, crtc);
 
 	if (crtc->state->event == NULL)
 		return;
@@ -540,12 +537,9 @@ rk_crtc_atomic_enable(struct drm_crtc *crtc, struct drm_crtc_state *old_state)
 static void
 rk_crtc_atomic_disable(struct drm_crtc *crtc, struct drm_crtc_state *old_state)
 {
-	struct rk_vop_softc *sc;
 	uint32_t irqflags;
 
 	dprintf("%s\n", __func__);
-
-	sc = container_of(crtc, struct rk_vop_softc, crtc);
 
 	/* Disable VBLANK events */
 	drm_crtc_vblank_off(crtc);
@@ -591,13 +585,13 @@ rk_vop_add_encoder(struct rk_vop_softc *sc, struct drm_device *drm)
 	node = ofw_bus_get_node(sc->dev);
 	if (node == 0)
 		return (ENOENT);
-        for(i=1;i<=2;i++) {
+	for(i=1;i<=2;i++) {
 		dev = ofw_graph_get_device_by_port_ep(ofw_bus_get_node(sc->dev),0, i);
 		if (dev != NULL) {
 
-			sc->connector_type = strncmp(device_get_name(dev),"rk_edp",6)==0 ? DRM_MODE_CONNECTOR_eDP : DRM_MODE_CONNECTOR_HDMIA;
-
+			sc->connector_type = strncmp(device_get_name(dev),"rk_anxdp",8)==0 ? DRM_MODE_CONNECTOR_eDP : DRM_MODE_CONNECTOR_HDMIA;
 			ret = DW_HDMI_ADD_ENCODER(dev, &sc->crtc, drm);
+
 			if (ret == 0)
 				return (ENODEV);
 			sc->outport = dev;
@@ -652,7 +646,6 @@ static driver_t rk_vop_driver = {
 	sizeof(struct rk_vop_softc)
 };
 
-static devclass_t rk_vop_devclass;
 EARLY_DRIVER_MODULE(rk_vop, simplebus, rk_vop_driver,
-    rk_vop_devclass, 0, 0, BUS_PASS_INTERRUPT + BUS_PASS_ORDER_LAST);
+    0, 0, BUS_PASS_INTERRUPT + BUS_PASS_ORDER_LAST);
 MODULE_VERSION(rk_vop, 1);

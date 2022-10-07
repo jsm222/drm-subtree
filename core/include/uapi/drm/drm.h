@@ -53,7 +53,6 @@ typedef unsigned int drm_handle_t;
 #include <stdint.h>
 #include <sys/ioccom.h>
 #include <sys/types.h>
-#ifndef _ASM_TYPES_H_
 typedef int8_t   __s8;
 typedef uint8_t  __u8;
 typedef int16_t  __s16;
@@ -63,8 +62,8 @@ typedef uint32_t __u32;
 typedef int64_t  __s64;
 typedef uint64_t __u64;
 typedef size_t   __kernel_size_t;
-#endif
 typedef unsigned long drm_handle_t;
+
 #endif
 
 #if defined(__cplusplus)
@@ -948,6 +947,8 @@ extern "C" {
 #define DRM_IOCTL_SYNCOBJ_QUERY		DRM_IOWR(0xCB, struct drm_syncobj_timeline_array)
 #define DRM_IOCTL_SYNCOBJ_TRANSFER	DRM_IOWR(0xCC, struct drm_syncobj_transfer)
 #define DRM_IOCTL_SYNCOBJ_TIMELINE_SIGNAL	DRM_IOWR(0xCD, struct drm_syncobj_timeline_array)
+
+#define DRM_IOCTL_MODE_GETFB2		DRM_IOWR(0xCE, struct drm_mode_fb_cmd2)
 
 /**
  * Device specific ioctls should only be in their respective headers

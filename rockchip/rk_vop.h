@@ -54,6 +54,7 @@
 #define	 DSP_CTRL1_MIPI_POL_M			(0xf << DSP_CTRL1_MIPI_POL_S)
 #define	 DSP_CTRL1_HDMI_POL_S			20
 #define	 DSP_CTRL1_HDMI_POL_M			(0xf << DSP_CTRL1_HDMI_POL_S)
+#define	RK3399_VOP_EDP_POL			((~((~0)<<((27)+1)))&((~0)<<(24)))
 #define	RK3399_DSP_BG				0x0018
 #define	RK3399_MCU_CTRL				0x001c
 #define	RK3399_WB_CTRL0				0x0020
@@ -133,7 +134,7 @@
 #define	RK3399_WIN2_DSP_INFO3			0x00f4
 #define	RK3399_WIN2_DSP_ST3			0x00f8
 #define	RK3399_WIN2_FADING_CTRL			0x00fc
-#define	RK3399_VOP_EDP_POL			((~((~0)<<((27)+1)))&((~0)<<(24)))
+
 #define	RK3399_WIN3_CTRL0			0x0100
 #define	RK3399_WIN3_CTRL1			0x0104
 #define	RK3399_WIN3_VIR0_1			0x0108
@@ -312,8 +313,9 @@ struct rk_vop_softc {
 	hwreset_t		hwreset_axi;
 	hwreset_t		hwreset_ahb;
 	hwreset_t		hwreset_dclk;
-        struct rk_vop_plane	planes[2];
-        int                     connector_type;
+	struct rk_vop_plane	planes[2];
+
+	int                     connector_type;
 	struct drm_pending_vblank_event	*event;
 	struct drm_device		*drm;
 	struct drm_crtc			crtc;

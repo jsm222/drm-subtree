@@ -140,7 +140,7 @@ access_type_name(struct panfrost_softc *sc, uint32_t fault_status)
 	}
 }
 
-static struct panfrost_gem_mapping *
+struct panfrost_gem_mapping *
 panfrost_mmu_find_mapping(struct panfrost_softc *sc, int as, uint64_t addr)
 {
 	struct panfrost_gem_mapping *mapping;
