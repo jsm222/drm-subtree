@@ -371,13 +371,11 @@ static driver_t rk_driver = {
 	sizeof(struct rk_drm_softc),
 };
 
-static devclass_t rk_drm_devclass;
 
-EARLY_DRIVER_MODULE(rk_drm, simplebus, rk_driver, rk_drm_devclass, 0, 0,
+EARLY_DRIVER_MODULE(rk_drm, simplebus, rk_driver, 0, 0,
     BUS_PASS_INTERRUPT + BUS_PASS_ORDER_FIRST);
 
 MODULE_DEPEND(rk_drm, rk_vop, 1, 1, 1);
 /* Bindings for fbd device. */
-extern devclass_t fbd_devclass;
 extern driver_t fbd_driver;
-DRIVER_MODULE(fbd, rk_drm, fbd_driver, fbd_devclass, 0, 0);
+DRIVER_MODULE(fbd, rk_drm, fbd_driver, 0, 0);

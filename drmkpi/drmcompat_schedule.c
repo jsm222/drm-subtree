@@ -101,7 +101,7 @@ wake_up_task_by_wq(wait_queue_entry_t *wq, unsigned int state)
 	ret = wakeup_swapper = 0;
 	sleepq_lock(task);
 	if ((atomic_read(&wq->state) & state) != 0) {
-		atomic_store_int(&wq->state, TASK_WAKING);
+		__atomic_store_int_relaxed(&wq->state, TASK_WAKING);
 		wakeup_swapper = sleepq_signal(task, SLEEPQ_SLEEP, 0, 0);
 		ret = 1;
 	}
@@ -163,7 +163,7 @@ drmcompat_prepare_to_wait(wait_queue_head_t *wqh, wait_queue_entry_t *wq,
 	spin_lock(&wqh->lock);
 	if (list_empty(&wq->entry))
 		list_add(&wqh->head, &wq->entry);
-	atomic_store_int(&wq->state, state);
+	__atomic_store_int_relaxed(&wq->state, state);
 	spin_unlock(&wqh->lock);
 }
 
@@ -172,7 +172,7 @@ drmcompat_finish_wait(wait_queue_head_t *wqh, wait_queue_entry_t *wq)
 {
 
 	spin_lock(&wqh->lock);
-	atomic_store_int(&wq->state, TASK_RUNNING);
+	__atomic_store_int_relaxed(&wq->state, TASK_RUNNING);
 	if (!list_empty(&wq->entry)) {
 		list_del(&wq->entry);
 		INIT_LIST_HEAD(&wq->entry);

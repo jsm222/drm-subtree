@@ -38,9 +38,8 @@
 struct rb_node {
 	RB_ENTRY(rb_node)	__entry;
 };
-#define	rb_left		__entry.rbe_left
-#define	rb_right	__entry.rbe_right
-
+#define	rb_left		__entry.rbe_link[_RB_L]
+#define	rb_right	__entry.rbe_link[_RB_R]
 /*
  * We provide a false structure that has the same bit pattern as tree.h
  * presents so it matches the member names expected by linux.
@@ -69,11 +68,17 @@ RB_PROTOTYPE(drmcompat_root, rb_node, __entry, panic_cmp);
 #define RB_EMPTY_ROOT(root)     RB_EMPTY((struct drmcompat_root *)root)
 #define RB_EMPTY_NODE(node)     (RB_PARENT(node, __entry) == node)
 #define RB_CLEAR_NODE(node)     RB_SET_PARENT(node, node, __entry)
+#define rb_insert_color(node, root) do {				\
+	if (rb_parent(node))						\
+		drmcompat_root_RB_INSERT_COLOR((struct drmcompat_root *)(root), \
+		    rb_parent(node), (node));				\
+} while (0)
+#define rb_insert_color_cached(node, root, leftmost) do {				\
+	if (rb_parent(node))						\
+		drmcompat_root_RB_INSERT_COLOR((struct drmcompat_root *)(root), \
+		    rb_parent(node), (node));				\
+} while (0)
 
-#define	rb_insert_color(node, root)					\
-	drmcompat_root_RB_INSERT_COLOR((struct drmcompat_root *)(root), (node))
-#define	rb_insert_color_cached(node, root, leftmost)			\
-	drmcompat_root_RB_INSERT_COLOR((struct drmcompat_root *)(root), (node))
 #define	rb_erase(node, root)						\
 	drmcompat_root_RB_REMOVE((struct drmcompat_root *)(root), (node))
 #define	rb_erase_cached(node, root)					\
@@ -83,7 +88,7 @@ RB_PROTOTYPE(drmcompat_root, rb_node, __entry, panic_cmp);
 #define	rb_first(root)	RB_MIN(drmcompat_root, (struct drmcompat_root *)(root))
 #define	rb_first_cached(root)	RB_MIN(drmcompat_root, (struct drmcompat_root *)(root))
 #define	rb_last(root)	RB_MAX(drmcompat_root, (struct drmcompat_root *)(root))
-
+#define	rb_parent(r)	RB_PARENT(r, __entry)
 static inline void
 rb_link_node(struct rb_node *node, struct rb_node *parent,
     struct rb_node **rb_link)
@@ -97,11 +102,11 @@ rb_replace_node(struct rb_node *victim, struct rb_node *new,
     struct rb_root *root)
 {
 
-	RB_SWAP_CHILD((struct drmcompat_root *)root, victim, new, __entry);
-	if (victim->rb_left)
-		RB_SET_PARENT(victim->rb_left, new, __entry);
-	if (victim->rb_right)
-		RB_SET_PARENT(victim->rb_right, new, __entry);
+	RB_SWAP_CHILD((struct drmcompat_root *)root, rb_parent(victim),victim, new, __entry);
+	if (RB_LEFT(victim, __entry))
+		RB_SET_PARENT(RB_LEFT(victim, __entry), new, __entry);
+	if (RB_RIGHT(victim, __entry))
+		RB_SET_PARENT(RB_RIGHT(victim, __entry), new, __entry);
 	*new = *victim;
 }
 
