@@ -1,26 +1,14 @@
 diff --git a/sys/arm64/conf/GENERIC-DRM b/sys/arm64/conf/GENERIC-DRM
-index 1b7f9b0a5d7..f2188c42160 100644
+index 2ca1b117bd5..b4c0f38fb80 100644
 --- a/sys/arm64/conf/GENERIC-DRM
 +++ b/sys/arm64/conf/GENERIC-DRM
-@@ -7,17 +7,19 @@
- 
- #NO_UNIVERSE
- 
--include		GENERIC
-+include		GENERIC-NODEBUG
- ident		GENERIC-DRM
- 
- # DRM Support
- options		COMPAT_DRMKPI
- options		COMPAT_LINUXKPI
--
-+options		IOMMU
- device		drm
- device		aw_de2_drm
+@@ -19,6 +19,9 @@ device		aw_de2_drm
  device		rk_drm
  device		dw_hdmi
-+device		rk_edp
+ device		panfrost
++device		rk_anxdp
 +device		es8316codec
++
  
  files		"../../dev/drm/extra_patches/files"
- files		"../../dev/drm/extra_patches/files.aw"
+ files		"../../dev/drm/extra_patches/files.arm64"
