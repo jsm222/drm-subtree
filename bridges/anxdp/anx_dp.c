@@ -1093,7 +1093,6 @@ int
 anxdp_bind(struct anxdp_softc *sc, struct drm_encoder *encoder)
 {
 	int error;
-
 	sc->sc_connector.encoder = encoder;
 
 	sc->sc_bridge.driver_private = sc;
@@ -1117,8 +1116,8 @@ anxdp_bind(struct anxdp_softc *sc, struct drm_encoder *encoder)
 static int anxdp_iic_transfer(device_t dev, struct iic_msg *msgs, uint32_t nmsgs) {
 	/* read buffer is max 16 bytes*/
 	uint32_t val,loop_timeout,reg;
-	int i,j,k;
-	int ret=0;
+	int i,j,k,ret;
+  	ret=0;
 	struct anxdp_softc *sc = device_get_softc(dev);
 
 	ANXDP_WRITE(sc, ANXDP_BUFFER_DATA_CTL, BUF_CLR);
@@ -1210,7 +1209,7 @@ static int anxdp_iic_transfer(device_t dev, struct iic_msg *msgs, uint32_t nmsgs
 
 
 out:
-	return 0;
+	return ret;
 }
 
 

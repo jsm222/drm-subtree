@@ -32,11 +32,11 @@
 
 #ifndef	_DEV_DRM_PANFROST_PANFROST_DEVICE_H_
 #define	_DEV_DRM_PANFROST_PANFROST_DEVICE_H_
+#include <arm64/iommu/iommu_pmap.h>
 
 #define	NUM_JOB_SLOTS	3
-
 struct panfrost_mmu {
-	struct pmap p;
+	struct smmu_pmap p;
 	int as;		/* asid set */
 	int as_count;	/* usage count */
 	TAILQ_ENTRY(panfrost_mmu)	next;	/* entry in mmu_in_use list */

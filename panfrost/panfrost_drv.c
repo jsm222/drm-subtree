@@ -46,6 +46,8 @@ __FBSDID("$FreeBSD$");
 #include <vm/vm_extern.h>
 #include <vm/vm_kern.h>
 #include <vm/pmap.h>
+#include <arm64/iommu/iommu_pmap.h>
+
 
 #include <dev/fdt/simplebus.h>
 

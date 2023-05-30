@@ -46,7 +46,6 @@ __FBSDID("$FreeBSD$");
 #include <vm/vm_extern.h>
 #include <vm/vm_kern.h>
 #include <vm/pmap.h>
-
 #include <arm64/iommu/iommu_pmap.h>
 #include <dev/extres/clk/clk.h>
 
@@ -400,16 +399,17 @@ int
 panfrost_mmu_pgtable_alloc(struct panfrost_file *pfile)
 {
 	struct panfrost_mmu *mmu;
-	pmap_t p;
+	struct smmu_pmap *p;
+
 
 	mmu = &pfile->mmu;
 	p = &mmu->p;
 
-	iommu_pmap_pinit(p);
-	PMAP_LOCK_INIT(p);
+	smmu_pmap_pinit(p);
+
 
 	/* Ensure root directory is visible to GPU. */
-	cpu_dcache_wbinv_range((uint64_t)p->pm_l0, sizeof(pd_entry_t));
+	cpu_dcache_wbinv_range((uint64_t)p->sp_l0, sizeof(pd_entry_t));
 
 	mmu->as = -1;
 
@@ -425,8 +425,8 @@ panfrost_mmu_pgtable_free(struct panfrost_file *pfile)
 	sc = pfile->sc;
 	mmu = &pfile->mmu;
 
-	iommu_pmap_remove_pages(&mmu->p);
-	iommu_pmap_release(&mmu->p);
+	smmu_pmap_remove_pages(&mmu->p);
+	smmu_pmap_release(&mmu->p);
 
 	mtx_lock_spin(&sc->as_mtx);
 	if (mmu->as >= 0) {
@@ -441,13 +441,13 @@ panfrost_mmu_enable(struct panfrost_softc *sc, struct panfrost_mmu *mmu)
 {
 	vm_paddr_t paddr;
 	uint64_t memattr;
-	pmap_t p;
+	struct smmu_pmap p;
 	int as;
 
 	as = mmu->as;
-	p = &mmu->p;
+	p = mmu->p;
 
-	paddr = p->pm_l0_paddr;
+	paddr = p.sp_l0_paddr;
 	paddr |= ARM_MALI_LPAE_TTBR_READ_INNER;
 	paddr |= ARM_MALI_LPAE_TTBR_ADRMODE_TABLE;
 
