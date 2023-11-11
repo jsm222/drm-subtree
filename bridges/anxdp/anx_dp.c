@@ -1074,7 +1074,7 @@ anxdp_attach(struct anxdp_softc *sc)
 	sc->sc_dpaux.name = "DP Aux";
 	sc->sc_dpaux.transfer = anxdp_dp_aux_transfer;
 	sc->sc_dpaux.dev = sc->sc_dev;
-	if ((sc->iicbus = device_add_child(sc->sc_dev, "iicbus", -1)) == NULL) {
+	if ((sc->iicbus = device_add_child(sc->sc_dev, "anxdp_iicbus", -1)) == NULL) {
 		device_printf(sc->sc_dev, "could not allocate iicbus instance\n");
 		return (ENXIO);
 	}
@@ -1144,7 +1144,6 @@ static int anxdp_iic_transfer(device_t dev, struct iic_msg *msgs, uint32_t nmsgs
 					ANXDP_WRITE(sc,
 					    ANXDP_BUF_DATA(j),
 					    ((const uint8_t *)(msgs[i].buf))[j]);
-					ret++;
 				}
 			}
 

@@ -596,7 +596,7 @@ retry:
 		m = vm_page_alloc_noobj_contig(pflags, 1, low, high,
 		    alignment, boundary, memattr);
 		if (m == NULL) {
-			if (tries < 3) {
+			if (tries < 0) {
 				if (!vm_page_reclaim_contig(pflags, 1, low,
 				    high, alignment, boundary))
 					vm_wait(NULL);
@@ -695,14 +695,14 @@ panfrost_gem_get_pages(struct panfrost_gem_object *bo)
 	 * so when panfrost gem object is imported to those DRM backends,
 	 * the backed pages have to be contiguous.
 	 */
-	if (1 == 0)
+	printf("MARK 0x%x\n",npages);
+	if (npages >= 0x10000)
 		error = panfrost_alloc_pages_iommu(bo);
 	else
 		error = panfrost_alloc_pages_contig(bo);
-
-	if (error)
+	
+	if(error)
 		return (error);
-
 	bo->sgt = drm_prime_pages_to_sg(m0, npages);
 
 	return (0);
