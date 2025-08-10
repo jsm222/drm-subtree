@@ -45,6 +45,7 @@ __FBSDID("$FreeBSD$");
 #include <vm/vm.h>
 #include <vm/vm_extern.h>
 #include <vm/vm_kern.h>
+#include <vm/vm_page.h>
 #include <vm/pmap.h>
 #include <arm64/iommu/iommu_pmap.h>
 
@@ -54,7 +55,7 @@ __FBSDID("$FreeBSD$");
 #include <dev/ofw/ofw_bus.h>
 #include <dev/ofw/ofw_bus_subr.h>
 
-#include <dev/extres/clk/clk.h>
+#include <dev/clk/clk.h>
 
 #include <drm/drm_gem.h>
 #include <drm/drm_atomic_helper.h>
@@ -594,7 +595,7 @@ panfrost_ioctl_madvise(struct drm_device *dev, void *data,
 	struct drm_panfrost_madvise *args;
 	struct drm_gem_object *obj;
 	struct panfrost_gem_object *bo;
-	vm_offset_t va;
+ 	vm_offset_t va;
 	vm_page_t m;
 	int i;
 
@@ -612,11 +613,11 @@ panfrost_ioctl_madvise(struct drm_device *dev, void *data,
 		if (bo->pages) {
 			for (i = 0; i < bo->npages; i++) {
 				m = bo->pages[i];
-				vm_page_lock(m);
+				// vm_page_lock(m);
 				pmap_zero_page(m);
-				va = PHYS_TO_DMAP(VM_PAGE_TO_PHYS(m));
-				cpu_dcache_wb_range(va, PAGE_SIZE);
-				vm_page_unlock(m);
+			 	 va = PHYS_TO_DMAP(VM_PAGE_TO_PHYS(m));
+				 cpu_dcache_wb_range( (void *)va, PAGE_SIZE);
+			// 	vm_page_unlock(m);
 			}
 		}
 		args->retained = 1;

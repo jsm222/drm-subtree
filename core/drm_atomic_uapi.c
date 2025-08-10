@@ -37,6 +37,7 @@
 #include <linux/uaccess.h>
 #include <linux/sync_file.h>
 #include <linux/file.h>
+#include <linux/log2.h>
 
 #include "drm_crtc_internal.h"
 

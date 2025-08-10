@@ -59,7 +59,7 @@ __FBSDID("$FreeBSD$");
 #include <drm/drm_ioctl.h>
 #include <drm/drm_vblank.h>
 
-#include <dev/drm/rockchip/rk_gem.h>
+#include <rk_gem.h>
 
 #include <linux/dma-buf.h>
 
@@ -183,7 +183,7 @@ rk_drm_fb_init(struct drm_device *drm_dev)
 {
 	struct rk_drm_softc *sc;
 	int rv;
-
+	printf("%s\n",__func__);
 	sc = container_of(drm_dev, struct rk_drm_softc, drm_dev);
 
 	drm_dev->dev = sc->dev;
@@ -244,6 +244,7 @@ rk_drm_fb_destroy(struct drm_device *drm_dev)
 static void
 rk_drm_irq_hook(void *arg)
 {
+	printf("%s\n",__func__);
 	struct rk_drm_softc *sc;
 	phandle_t node;
 	device_t portdev;
@@ -330,10 +331,9 @@ static int
 rk_drm_attach(device_t dev)
 {
 	struct rk_drm_softc *sc;
-
+	printf("%s\n",__func__);
 	sc = device_get_softc(dev);
 	sc->dev = dev;
-
 	config_intrhook_oneshot(&rk_drm_irq_hook, sc);
 
 	return (0);
@@ -375,7 +375,7 @@ static driver_t rk_driver = {
 EARLY_DRIVER_MODULE(rk_drm, simplebus, rk_driver, 0, 0,
     BUS_PASS_INTERRUPT + BUS_PASS_ORDER_FIRST);
 
-MODULE_DEPEND(rk_drm, rk_vop, 1, 1, 1);
+MODULE_DEPEND(rk_drm, drm_kmod, 1 ,1, 1);
 /* Bindings for fbd device. */
 extern driver_t fbd_driver;
 DRIVER_MODULE(fbd, rk_drm, fbd_driver, 0, 0);

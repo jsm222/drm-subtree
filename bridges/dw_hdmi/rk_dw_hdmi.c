@@ -43,9 +43,9 @@ __FBSDID("$FreeBSD$");
 #include <dev/ofw/ofw_bus.h>
 #include <dev/ofw/ofw_bus_subr.h>
 
-#include <dev/extres/clk/clk.h>
-#include <dev/extres/syscon/syscon.h>
-#include <dev/extres/hwreset/hwreset.h>
+#include <dev/clk/clk.h>
+#include <dev/syscon/syscon.h>
+#include <dev/hwreset/hwreset.h>
 
 #include <drm/drm_atomic_helper.h>
 #include <drm/drm_bridge.h>
@@ -242,7 +242,7 @@ static device_method_t rk_dw_hdmi_methods[] = {
 DEFINE_CLASS_1(rk_dw_hdmi, rk_dw_hdmi_driver, rk_dw_hdmi_methods,
     sizeof(struct rk_dw_hdmi_softc), dw_hdmi_driver);
 
-
+MODULE_DEPEND(rk_dw_hdmi,drm_kmod,1,1,1);
 EARLY_DRIVER_MODULE(rk_dw_hdmi, simplebus, rk_dw_hdmi_driver,
   0, 0, BUS_PASS_SUPPORTDEV + BUS_PASS_ORDER_EARLY);
 MODULE_VERSION(rk_dw_hdmi, 1);

@@ -43,7 +43,7 @@ __FBSDID("$FreeBSD$");
 
 #include <machine/bus.h>
 
-#include <dev/extres/clk/clk.h>
+#include <dev/clk/clk.h>
 #include <drm/drm_crtc_helper.h>
 #include <drm/drm_drv.h>
 #include <drm/drm_fb_helper.h>
@@ -59,7 +59,7 @@ tegra_bo_destruct(struct tegra_bo *bo)
 
 	if (bo->vbase != 0) {
 		pmap_qremove(bo->vbase, bo->npages);
-		vmem_free(kmem_arena, bo->vbase, round_page(bo->gem_obj.size));
+		vmem_free(kernel_arena, bo->vbase, round_page(bo->gem_obj.size));
 	}
 
 	for (i = 0; i < bo->npages; i++) {

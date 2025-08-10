@@ -64,15 +64,15 @@ __FBSDID("$FreeBSD$");
 #include <drm/drm_print.h>
 #include <drm/drm_vblank.h>
 
-#include <dev/extres/hwreset/hwreset.h>
-#include <dev/extres/clk/clk.h>
-#include <dev/extres/phy/phy.h>
+#include <dev/hwreset/hwreset.h>
+#include <dev/clk/clk.h>
+#include <dev/phy/phy.h>
 
 #include <dev/videomode/videomode.h>
 #include <dev/videomode/edidvar.h>
 
-#include <dev/drm/rockchip/rk_plane.h>
-#include <dev/drm/rockchip/rk_vop.h>
+#include "rk_plane.h"
+#include "rk_vop.h"
 
 #include "rk_vop_if.h"
 #include "dw_hdmi_if.h"

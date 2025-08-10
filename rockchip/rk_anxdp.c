@@ -35,17 +35,17 @@
 
 #include <dev/ofw/ofw_bus.h>
 #include <dev/ofw/ofw_bus_subr.h>
-#include <dev/extres/clk/clk.h>
-#include <dev/extres/syscon/syscon.h>
-#include <dev/extres/hwreset/hwreset.h>
+#include <dev/clk/clk.h>
+#include <dev/syscon/syscon.h>
+#include <dev/hwreset/hwreset.h>
 #include <dev/fdt/fdt_common.h>
 
 #include <dev/ofw/ofw_bus.h>
 #include <dev/ofw/ofw_bus_subr.h>
-#include <dev/drm/core/include/drm/drm_atomic_helper.h>
-#include <dev/drm/core/include/drm/drm_bridge.h>
-#include <dev/drm/core/include/drm/drm_dp_helper.h>
-#include <dev/drm/bridges/anxdp/anx_dp.h>
+#include <drm/drm_atomic_helper.h>
+#include <drm/drm_bridge.h>
+#include <drm/drm_dp_helper.h>
+#include "../bridges/anxdp/anx_dp.h"
 struct rk_anxdp_softc {
 	struct anxdp_softc  sc_base;
 	device_t dev;
@@ -223,7 +223,7 @@ rk_anxdp_add_encoder(device_t dev, struct drm_crtc *crtc, struct drm_device *drm
 	struct rk_anxdp_softc *sc;
 	int error = 0;
 	sc = device_get_softc(dev);
-
+	printf("%s:%d %s\n",__FILE__,__LINE__,__func__);
 	drm_encoder_helper_add(&sc->sc_encoder,&rk_anxdp_encoder_helper_funcs);
 	sc->sc_encoder.possible_crtcs = drm_crtc_mask(crtc);
 
@@ -236,7 +236,7 @@ rk_anxdp_add_encoder(device_t dev, struct drm_crtc *crtc, struct drm_device *drm
 	return error;
 }
 
-
+MODULE_DEPEND(rk_anxdp,drm_kmod,1,1,1);
 DEFINE_CLASS_1(rk_anxdp, rk_anxdp_driver, rk_anxdp_methods,
     sizeof(struct rk_anxdp_softc), anxdp_driver);
 

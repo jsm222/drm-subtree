@@ -51,7 +51,7 @@ __FBSDID("$FreeBSD$");
 #include <vm/pmap.h>
 
 
-#include <dev/extres/clk/clk.h>
+#include <dev/clk/clk.h>
 
 #include <drm/drm_gem.h>
 #include <drm/drm_atomic_helper.h>
@@ -97,14 +97,14 @@ panfrost_gem_free_object(struct drm_gem_object *obj)
 	if (bo->pages) {
 		for (i = 0; i < bo->npages; i++) {
 			m = bo->pages[i];
-			vm_page_lock(m);
+			// vm_page_lock(m);
 			m->flags &= ~PG_FICTITIOUS;
 			m->oflags |= VPO_UNMANAGED;
 			vm_page_unwire_noq(m);
 			vm_page_free(m);
-			vm_page_unlock(m);
+		//	free(bo->pages[i],M_PANFROST);
+		//	vm_page_unlock(m);
 		}
-
 		free(bo->pages, M_PANFROST);
 	}
 
@@ -434,10 +434,9 @@ panfrost_gem_object_put(struct panfrost_gem_object *bo)
 {
 	struct drm_gem_object *obj;
 	struct drm_device *dev;
-
+	
 	obj = &bo->base;
 	dev = obj->dev;
-
 	mutex_lock(&dev->struct_mutex);
 	drm_gem_object_put(obj);
 	mutex_unlock(&dev->struct_mutex);
@@ -586,7 +585,7 @@ panfrost_alloc_pages_iommu(struct panfrost_gem_object *bo)
 	low = 0;
 	high = -1UL;
 	boundary = 0;
-	pflags = VM_ALLOC_NORMAL | VM_ALLOC_NOBUSY | VM_ALLOC_WIRED |
+	pflags =  VM_ALLOC_NOWAIT | VM_ALLOC_WIRED |
 	    VM_ALLOC_ZERO;
 	memattr = VM_MEMATTR_WRITE_COMBINING;
 
@@ -609,7 +608,7 @@ retry:
 		if ((m->flags & PG_ZERO) == 0)
 			pmap_zero_page(m);
 		va = PHYS_TO_DMAP(VM_PAGE_TO_PHYS(m));
-		cpu_dcache_wb_range(va, PAGE_SIZE);
+	 cpu_dcache_wb_range( (void *)va, PAGE_SIZE);
 		m->valid = VM_PAGE_BITS_ALL;
 		m->oflags &= ~VPO_UNMANAGED;
 		m->flags |= PG_FICTITIOUS;
@@ -635,8 +634,9 @@ panfrost_alloc_pages_contig(struct panfrost_gem_object *bo)
 	low = 0;
 	high = -1UL;
 	boundary = 0;
-	pflags = VM_ALLOC_NORMAL | VM_ALLOC_NOBUSY | VM_ALLOC_WIRED |
-	    VM_ALLOC_ZERO;
+	pflags =  VM_ALLOC_NOWAIT | VM_ALLOC_WIRED |
+            VM_ALLOC_ZERO;
+
 	memattr = VM_MEMATTR_WRITE_COMBINING;
 
 	tries = 0;
@@ -658,7 +658,7 @@ retry:
 		if ((m->flags & PG_ZERO) == 0)
 			pmap_zero_page(m);
 		va = PHYS_TO_DMAP(VM_PAGE_TO_PHYS(m));
-		cpu_dcache_wb_range(va, PAGE_SIZE);
+		cpu_dcache_wb_range( (void *)va, PAGE_SIZE);
 		m->valid = VM_PAGE_BITS_ALL;
 		m->oflags &= ~VPO_UNMANAGED;
 		m->flags |= PG_FICTITIOUS;
@@ -696,10 +696,7 @@ panfrost_gem_get_pages(struct panfrost_gem_object *bo)
 	 * the backed pages have to be contiguous.
 	 */
 	printf("MARK 0x%x\n",npages);
-	if (npages >= 0x10000)
-		error = panfrost_alloc_pages_iommu(bo);
-	else
-		error = panfrost_alloc_pages_contig(bo);
+	error = panfrost_alloc_pages_contig(bo);
 	
 	if(error)
 		return (error);

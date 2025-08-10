@@ -47,7 +47,7 @@ __FBSDID("$FreeBSD$");
 #include <vm/vm_kern.h>
 #include <vm/pmap.h>
 #include <arm64/iommu/iommu_pmap.h>
-#include <dev/extres/clk/clk.h>
+#include <dev/clk/clk.h>
 
 #include <drm/drm_gem.h>
 #include <drm/drm_atomic_helper.h>
@@ -409,7 +409,7 @@ panfrost_mmu_pgtable_alloc(struct panfrost_file *pfile)
 
 
 	/* Ensure root directory is visible to GPU. */
-	cpu_dcache_wbinv_range((uint64_t)p->sp_l0, sizeof(pd_entry_t));
+	cpu_dcache_wbinv_range((void*)p->sp_l0, sizeof(pd_entry_t));
 
 	mmu->as = -1;
 

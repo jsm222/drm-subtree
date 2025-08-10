@@ -30,6 +30,8 @@
 
 #ifndef _DEV_IC_ANXDP_H
 #include <sys/cdefs.h>
+#include	<sys/types.h>
+#include	<sys/malloc.h>
 __FBSDID("$FreeBSD$");
 
 #define ANXDP_AUDIO 0
@@ -45,7 +47,6 @@ __FBSDID("$FreeBSD$");
 #include <drm/drm_drv.h>
 #include <drm/drm_panel.h>
 #include <drm/drm_probe_helper.h>
-
 struct anxdp_softc;
 
 struct anxdp_connector {

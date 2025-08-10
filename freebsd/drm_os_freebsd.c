@@ -38,7 +38,7 @@ __FBSDID("$FreeBSD$");
 #include <vm/vm_pager.h>
 
 #include <drm/drmP.h>
-#include "../..//drm_internal.h"
+#include "../../drm_internal.h"
 
 MALLOC_DEFINE(DRM_MEM_DRIVER, "drm_driver", "DRM DRIVER Data Structures");
 MALLOC_DEFINE(DRM_MEM_KMS, "drm_kms", "DRM KMS Data Structures");
@@ -785,13 +785,13 @@ void drm_fbsd_cdev_delete(struct drm_minor *minor)
 
 	destroy_dev(minor->kdev);
 }
-
+#ifdef DRM_CONFIG_LEGACY
 int drm_legacy_irq_control(struct drm_device *dev, void *data,
 			   struct drm_file *file_priv)
 {
 	panic("%s: Not implemented yet.", __func__);
 }
-
+#endif
 int drm_irq_uninstall(struct drm_device *dev)
 {
 	panic("%s: Not implemented yet.", __func__);

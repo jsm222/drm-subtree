@@ -32,7 +32,7 @@ __FBSDID("$FreeBSD$");
 #include <drm/drmP.h>
 #include <uapi/drm/drm.h>
 #include <drm/drm_legacy.h>
-
+#include <linux/rbtree.h>
 #include <sys/sysctl.h>
 
 static int drm_add_busid_modesetting(struct drm_device *dev, struct sysctl_ctx_list *ctx,

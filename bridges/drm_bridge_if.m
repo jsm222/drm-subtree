@@ -1,4 +1,4 @@
-#-
+#
 # Copyright (c) 2019 Emmanuel Vadot <manu@FreeBSD.org>
 #
 # Redistribution and use in source and binary forms, with or without

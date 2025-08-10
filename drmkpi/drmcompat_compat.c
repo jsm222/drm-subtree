@@ -37,9 +37,9 @@ __FBSDID("$FreeBSD$");
 #include <sys/file.h>
 
 #include <machine/vmparam.h>
-
+#include <linux/types.h>
+#include <drmcompat/fs.h>
 #include <drmcompat/uaccess.h>
-
 SYSCTL_NODE(_compat, OID_AUTO, drmcompat, CTLFLAG_RW, 0, "DRMCOMPAT parameters");
 
 MALLOC_DEFINE(M_DRMKMALLOC, "drmcompat", "DRM kmalloc compat");

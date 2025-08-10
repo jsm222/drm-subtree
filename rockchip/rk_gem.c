@@ -33,7 +33,7 @@ __FBSDID("$FreeBSD$");
 #include <drm/drm_gem_cma_helper.h>
 #include <drm/drm_file.h>
 
-#include <dev/drm/rockchip/rk_gem.h>
+#include "rk_gem.h"
 #include <linux/dma-buf.h>
 
 MALLOC_DECLARE(M_RKGEM);

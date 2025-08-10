@@ -168,7 +168,7 @@ static inline void
 sg_kfree(struct scatterlist *sg, unsigned int nents)
 {
 	if (nents == SG_MAX_SINGLE_ALLOC) {
-		free_page((unsigned long)sg);
+		free_page((void*)sg);
 	} else
 		kfree(sg);
 }

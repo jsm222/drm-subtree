@@ -43,7 +43,7 @@ __FBSDID("$FreeBSD$");
 
 #include <machine/bus.h>
 
-#include <dev/extres/clk/clk.h>
+#include <dev/clk/clk.h>
 
 #include <drm/drm_crtc_helper.h>
 #include <drm/drm_gem.h>
@@ -62,19 +62,19 @@ drm_gem_cma_destruct(struct drm_gem_cma_object *bo)
 
 	if (bo->vbase != 0) {
 		pmap_qremove(bo->vbase, bo->npages);
-		vmem_free(kmem_arena, bo->vbase, round_page(bo->gem_obj.size));
+		vmem_free(kernel_arena, bo->vbase, round_page(bo->gem_obj.size));
 	}
 
 	for (i = 0; i < bo->npages; i++) {
 		m = bo->m[i];
 		if (m == NULL)
 			break;
-		vm_page_lock(m);
+	//  	vm_page_lock(m);
 		m->oflags |= VPO_UNMANAGED;
 		m->flags &= ~PG_FICTITIOUS;
 		vm_page_unwire_noq(m);
 		vm_page_free(m);
-		vm_page_unlock(m);
+		// vm_page_unlock(m);
 	}
 }
 
@@ -89,8 +89,7 @@ drm_gem_cma_alloc_contig(size_t npages, u_long alignment, vm_memattr_t memattr,
 	low = 0;
 	high = -1UL;
 	boundary = 0;
-	pflags = VM_ALLOC_NORMAL | VM_ALLOC_NOBUSY | VM_ALLOC_WIRED |
-	    VM_ALLOC_ZERO;
+	pflags =  VM_ALLOC_WIRED | VM_ALLOC_ZERO;
 	tries = 0;
 retry:
 	m = vm_page_alloc_noobj_contig(pflags, npages, low, high, alignment,

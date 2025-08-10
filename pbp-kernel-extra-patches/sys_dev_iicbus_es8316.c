@@ -52,7 +52,7 @@ index 00000000000..1eae1e1bb10
 +#include <dev/ofw/ofw_bus_subr.h>
 +#endif
 +
-+#include <dev/extres/clk/clk.h>
++#include <dev/clk/clk.h>
 +
 +#include <dev/iicbus/iiconf.h>
 +#include <dev/iicbus/iicbus.h>

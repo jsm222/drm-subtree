@@ -305,6 +305,7 @@ enum vop_pol {
 
 struct rk_vop_softc {
 	device_t		dev;
+	device_t		iommu_dev;
 	struct rk_vop_conf	*phy_conf;
 	clk_t			clk[CLK_NENTRIES];
 	struct resource		*res[2];

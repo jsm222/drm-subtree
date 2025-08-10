@@ -58,7 +58,7 @@ void *
 drmcompat_alloc_kmem(gfp_t flags, unsigned int order)
 {
 	size_t size = ((size_t)PAGE_SIZE) << order;
-	void *addr;
+	void * addr;
 
 	if ((flags & GFP_DMA32) == 0) {
 		addr = kmem_malloc(size, flags & GFP_NATIVE_MASK);
@@ -66,11 +66,11 @@ drmcompat_alloc_kmem(gfp_t flags, unsigned int order)
 		addr = kmem_alloc_contig(size, flags & GFP_NATIVE_MASK, 0,
 		    BUS_SPACE_MAXADDR_32BIT, PAGE_SIZE, 0, VM_MEMATTR_DEFAULT);
 	}
-	return (addr);
+	return addr;
 }
 
 void
-drmcompat_free_kmem(vm_offset_t addr, unsigned int order)
+drmcompat_free_kmem(void* addr, unsigned int order)
 {
 	size_t size = ((size_t)PAGE_SIZE) << order;
 

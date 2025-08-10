@@ -57,24 +57,27 @@ __FBSDID("$FreeBSD$");
 #include <drm/drm_gem_framebuffer_helper.h>
 #include <drm/drm_plane_helper.h>
 #include <drm/drm_fb_cma_helper.h>
-#include <drm/drm_fb_helper.h>
+#include <drm/drm_encoder.h>
+#include "drm/drm_fb_helper.h"
 #include <drm/drm_fb_cma_helper.h>
 #include <drm/drm_gem_cma_helper.h>
 #include <drm/drm_fourcc.h>
 #include <drm/drm_print.h>
 #include <drm/drm_vblank.h>
 
-#include <dev/extres/hwreset/hwreset.h>
-#include <dev/extres/clk/clk.h>
-#include <dev/extres/phy/phy.h>
+#include <dev/hwreset/hwreset.h>
+#include <dev/clk/clk.h>
+#include <dev/phy/phy.h>
 
 #include <dev/videomode/videomode.h>
 #include <dev/videomode/edidvar.h>
 
-#include <dev/drm/rockchip/rk_plane.h>
-#include <dev/drm/rockchip/rk_vop.h>
+#include "rk_plane.h"
+#include "rk_vop.h"
 
 #include "rk_vop_if.h"
+MALLOC_DEFINE(DRM_MEM_DRIVER, "drm_driver", "DRM DRIVER Data Structures");
+
 #include "dw_hdmi_if.h"
 
 #define	VOP_READ(sc, reg)	bus_read_4((sc)->res[0], (reg))
@@ -82,8 +85,8 @@ __FBSDID("$FreeBSD$");
 
 #define	RK_VOP_MAX_ENDPOINTS	32
 
-#define	dprintf(fmt, ...)
-
+#define	dprintf(fmt, ...) 
+/*printf(fmt,__VA_ARGS__)*/
 static char * clk_table[CLK_NENTRIES] = { "aclk_vop", "dclk_vop", "hclk_vop" };
 
 /*
@@ -277,12 +280,17 @@ static int
 rk_vop_attach(device_t dev)
 {
 	struct rk_vop_softc *sc;
-	phandle_t node;
+	phandle_t node,iommu_node;
 
 	sc = device_get_softc(dev);
 	sc->dev = dev;
 
 	node = ofw_bus_get_node(dev);
+        if(OF_getencprop(node,"iommus",&iommu_node,sizeof(iommu_node))) {
+	sc->iommu_dev =   OF_device_from_xref(iommu_node);
+	device_printf(sc->dev,"iommu dev %s\n",device_get_name(sc->iommu_dev));
+	}
+
 
 	if (bus_alloc_resources(dev, rk_vop_spec, sc->res) != 0) {
 		device_printf(dev, "cannot allocate resources for device\n");
@@ -308,6 +316,8 @@ rk_vop_attach(device_t dev)
 
 	device_printf(sc->dev, "VOP version: %x\n",
 	    VOP_READ(sc, RK3399_VERSION_INFO));
+	
+
 
 	return (0);
 }
@@ -581,7 +591,7 @@ rk_vop_add_encoder(struct rk_vop_softc *sc, struct drm_device *drm)
 	phandle_t node;
 	device_t dev;
 	int ret,i;
-
+	printf("%s:%d %s\n",__FILE__,__LINE__,__func__);
 	node = ofw_bus_get_node(sc->dev);
 	if (node == 0)
 		return (ENOENT);
@@ -610,7 +620,7 @@ rk_vop_create_pipeline(device_t dev, struct drm_device *drm)
 
 	sc = device_get_softc(dev);
 
-	dprintf("%s\n", __func__);
+	printf("%s\n", __func__);
 
 	rk_plane_create(sc, drm);
 
@@ -645,7 +655,7 @@ static driver_t rk_vop_driver = {
 	rk_vop_methods,
 	sizeof(struct rk_vop_softc)
 };
-
+MODULE_DEPEND(rk_vop,drm_kmod,1,1,1);
 EARLY_DRIVER_MODULE(rk_vop, simplebus, rk_vop_driver,
     0, 0, BUS_PASS_INTERRUPT + BUS_PASS_ORDER_LAST);
 MODULE_VERSION(rk_vop, 1);
