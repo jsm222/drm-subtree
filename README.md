@@ -1,7 +1,7 @@
 How to use :
 For building as modules make sure your running kernels source is in /usr/src 
 in /usr/src
-
+(if cross compiling from amd64)
 ```
 make buildenv TARGET_ARCH=aarch64 BUILDENV_SHELL=/bin/sh
 ```
