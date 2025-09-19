@@ -1,7 +1,12 @@
 How to use :
-For building as modules make sure your running kernels source is in /usr/src then go to drm-subtree/modules and type 
+For building as modules make sure your running kernels source is in /usr/src 
+in /usr/src
 
-``` 
+```
+make buildenv TARGET_ARCH=aarch64 BUILDENV_SHELL=/bin/sh
+```
+in drm-subtree/modules type  (not part of /usr/src tree)
+```
 make && make install
 ```
 
