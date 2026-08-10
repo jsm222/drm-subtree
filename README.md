@@ -1,3 +1,6 @@
+**For more up-to-date drm see github.com/bsd-sbc-drm**
+
+
 How to use :
 For building as modules make sure your running kernels source is in /usr/src 
 in /usr/src
